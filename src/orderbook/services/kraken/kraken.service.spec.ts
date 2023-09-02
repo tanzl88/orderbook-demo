@@ -70,12 +70,18 @@ describe('KrakenOrderbookService', () => {
       [100, 10],
       [102, 30],
     ];
-    const levels: KrakenLevel[] = [['101', '20', 'timestamp', 'insert']];
+    const levels: KrakenLevel[] = [
+      ['99', '5', 'timestamp', 'insert'],
+      ['101', '20', 'timestamp', 'insert'],
+      ['103', '50', 'timestamp', 'insert'],
+    ];
     const result = service['calcUpdatedLevels'](_currentLevels, levels);
     const expected: OrderbookLevel[] = [
+      [99, 5],
       [100, 10],
       [101, 20],
       [102, 30],
+      [103, 50],
     ];
     expect(result).toEqual(expected);
   });

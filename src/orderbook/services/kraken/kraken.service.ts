@@ -47,7 +47,6 @@ export class KrakenOrderbookService extends BaseOrderbookService {
     levels: KrakenLevel[],
   ): OrderbookLevel[] {
     let currentLevels = structuredClone(_currentLevels);
-    // console.log('rows: ' + levels.length);
     if (currentLevels.length === 0) {
       return levels.map((level) => {
         return [Number(level[0]), Number(level[1])];
@@ -58,13 +57,13 @@ export class KrakenOrderbookService extends BaseOrderbookService {
       const price = Number(level[0]);
       const volume = Number(level[1]);
       const isDelete = volume === 0;
+      let inserted = false;
 
       for (let index = 0; index < currentLevels.length; index++) {
         const currentPrice = Number(currentLevels[index][0]);
 
         // delete level
         if (isDelete && currentPrice === price) {
-          // console.log('Delete', currentPrice);
           currentLevels.splice(index, 1);
           break;
         }
@@ -72,8 +71,13 @@ export class KrakenOrderbookService extends BaseOrderbookService {
         // update level
         const isUpdate = currentPrice === price;
         if (isUpdate) {
-          // console.log('Update', price);
           currentLevels[index] = [price, volume];
+          break;
+        }
+
+        // insert
+        if (price < Number(currentLevels[index][0])) {
+          currentLevels.splice(index, 0, [price, volume]);
           break;
         }
 
@@ -81,15 +85,7 @@ export class KrakenOrderbookService extends BaseOrderbookService {
         // append
         const isLastIndex = index === currentLevels.length - 1;
         if (isLastIndex) {
-          // console.log('Append', price);
           currentLevels.push([price, volume]);
-          break;
-        }
-
-        // insert
-        if (price < Number(currentLevels[index + 1][0])) {
-          // console.log('Insert', price);
-          currentLevels.splice(index + 1, 0, [price, volume]);
           break;
         }
       }
