@@ -89,7 +89,7 @@ export class KrakenOrderbookService extends BaseOrderbookService {
         // insert
         if (price < Number(currentLevels[index + 1][0])) {
           // console.log('Insert', price);
-          currentLevels[index] = [price, volume];
+          currentLevels.splice(index + 1, 0, [price, volume]);
           break;
         }
       }
