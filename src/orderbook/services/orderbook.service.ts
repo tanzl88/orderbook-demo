@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import * as WebSocket from 'ws';
-import { OrderbookLevel } from './orderbook.types';
+import { Orderbook, OrderbookLevel } from './orderbook.types';
 
 export class BaseOrderbookService {
   private wsClient: WebSocket;
@@ -26,7 +26,7 @@ export class BaseOrderbookService {
     return null;
   }
 
-  getLevels(): { a: OrderbookLevel[]; b: OrderbookLevel[] } {
+  getOrderbook(): Orderbook {
     return {
       a: this.asks,
       b: this.bids,
@@ -64,29 +64,17 @@ export class BaseOrderbookService {
 
   protected async handleData(data: WebSocket.Data) {}
 
-  protected setAsks(asks: OrderbookLevel[]) {
+  public setAsks(asks: OrderbookLevel[]) {
     this.asks = asks;
     this.verifyLevels(asks, true);
   }
-  protected setBids(bids: OrderbookLevel[]) {
+  public setBids(bids: OrderbookLevel[]) {
     this.bids = bids;
     this.verifyLevels(bids, false);
   }
 
   private verifyLevels(levels: OrderbookLevel[], isIncreasing: boolean) {
-    let levelsError = false;
-    for (let index = 0; index < levels.length - 2; index++) {
-      if (isIncreasing && levels[index][0] >= levels[index + 1][0]) {
-        console.log('increasing', levels[index], levels[index + 1]);
-        levelsError = true;
-        break;
-      } else if (!isIncreasing && levels[index][0] <= levels[index + 1][0]) {
-        console.log('decreasing', levels[index], levels[index + 1]);
-        levelsError = true;
-        break;
-      }
-    }
-
+    const levelsError = this.isError(levels, isIncreasing);
     if (levelsError) {
       console.log(isIncreasing);
       this.logger.warn(`Levels error: ${this.name}`);
@@ -94,5 +82,22 @@ export class BaseOrderbookService {
     } else {
       // this.logger.log(`Ok: ${this.name}`);
     }
+  }
+
+  private isError(levels: OrderbookLevel[], isIncreasing: boolean): boolean {
+    if (levels.length < 1) return false;
+
+    let index = 0;
+    while (index < levels.length - 1) {
+      if (isIncreasing && levels[index][0] >= levels[index + 1][0]) {
+        return true;
+      } else if (!isIncreasing && levels[index][0] <= levels[index + 1][0]) {
+        return true;
+      }
+
+      index++;
+    }
+
+    return false;
   }
 }

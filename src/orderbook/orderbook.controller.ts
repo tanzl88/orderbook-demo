@@ -6,9 +6,9 @@ import { BinanceOrderbookService } from './services/binance/binance.service';
 @Controller('orderbook')
 export class OrderbookController {
   constructor(
-    private krakenOrderbookService: KrakenOrderbookService,
-    private huobiOrderbookService: HuobiOrderbookService,
-    private binanceOrderbookService: BinanceOrderbookService,
+    public krakenOrderbookService: KrakenOrderbookService,
+    public huobiOrderbookService: HuobiOrderbookService,
+    public binanceOrderbookService: BinanceOrderbookService,
   ) {}
 
   @Get('midprice')
@@ -29,11 +29,11 @@ export class OrderbookController {
   }
 
   @Get('levels')
-  getLevels() {
+  getOrderbook() {
     return {
-      kraken: this.krakenOrderbookService.getLevels(),
-      huobi: this.huobiOrderbookService.getLevels(),
-      binance: this.binanceOrderbookService.getLevels(),
+      kraken: this.krakenOrderbookService.getOrderbook(),
+      huobi: this.huobiOrderbookService.getOrderbook(),
+      binance: this.binanceOrderbookService.getOrderbook(),
     };
   }
 }
