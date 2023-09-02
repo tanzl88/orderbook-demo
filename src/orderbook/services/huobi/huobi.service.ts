@@ -24,11 +24,11 @@ export class HuobiOrderbookService extends BaseOrderbookService {
 
     if (parsedData?.tick?.asks) {
       // console.log(parsedData.tick.asks);
-      this.asks = parsedData.tick.asks;
+      this.setAsks(parsedData.tick.asks);
     }
     if (parsedData?.tick?.bids) {
       // console.log(parsedData.tick.bids);
-      this.bids = parsedData.tick.bids;
+      this.setBids(parsedData.tick.bids);
     }
   }
 }

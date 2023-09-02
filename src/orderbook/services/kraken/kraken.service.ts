@@ -3,6 +3,7 @@ import { WebSocketGateway } from '@nestjs/websockets';
 import * as WebSocket from 'ws';
 import { KrakenLevel, KrakenOrderbookResponse } from './kraken.types';
 import { BaseOrderbookService } from '../orderbook.service';
+import { OrderbookLevel } from '../orderbook.types';
 
 @Injectable()
 @WebSocketGateway()
@@ -24,38 +25,33 @@ export class KrakenOrderbookService extends BaseOrderbookService {
     const orderbook = parsedData[1];
 
     if (orderbook?.as) {
-      this.updateAsks(orderbook.as);
+      this.setAsks(this.calcUpdatedLevels(this.asks, orderbook.as));
     }
     if (orderbook?.a) {
-      this.updateAsks(orderbook.a);
+      this.setAsks(this.calcUpdatedLevels(this.asks, orderbook.a));
     }
     if (orderbook?.bs) {
-      this.updateBids(orderbook.bs);
+      this.setBids(this.calcUpdatedLevels(this.bids, orderbook.bs));
     }
     if (orderbook?.b) {
-      this.updateBids(orderbook.b);
-    }
-
-    if (orderbook?.as || orderbook?.a) {
-      // console.log('OB', this.asks);
-      // check
-      // let checkOk = true;
-      // for (let index = 0; index < this.asks.length - 2; index++) {
-      //   if (this.asks[index] >= this.asks[index + 1]) {
-      //     checkOk = false;
-      //   }
-      // }
-      // console.log('Orderbook: ' + checkOk);
+      const updatedBids = this.calcUpdatedLevels(
+        structuredClone(this.bids).reverse(),
+        structuredClone(orderbook.b).reverse(),
+      );
+      this.setBids(updatedBids.reverse());
     }
   }
 
-  private updateAsks(levels: KrakenLevel[]) {
+  private calcUpdatedLevels(
+    _currentLevels: OrderbookLevel[],
+    levels: KrakenLevel[],
+  ): OrderbookLevel[] {
+    let currentLevels = structuredClone(_currentLevels);
     // console.log('rows: ' + levels.length);
-    if (this.asks.length === 0) {
-      this.asks = levels.map((level) => {
+    if (currentLevels.length === 0) {
+      return levels.map((level) => {
         return [Number(level[0]), Number(level[1])];
       });
-      return null;
     }
 
     for (const level of levels) {
@@ -63,13 +59,13 @@ export class KrakenOrderbookService extends BaseOrderbookService {
       const volume = Number(level[1]);
       const isDelete = volume === 0;
 
-      for (let index = 0; index < this.asks.length; index++) {
-        const currentPrice = Number(this.asks[index][0]);
+      for (let index = 0; index < currentLevels.length; index++) {
+        const currentPrice = Number(currentLevels[index][0]);
 
         // delete level
         if (isDelete && currentPrice === price) {
           // console.log('Delete', currentPrice);
-          this.asks.splice(index, 1);
+          currentLevels.splice(index, 1);
           break;
         }
 
@@ -77,77 +73,28 @@ export class KrakenOrderbookService extends BaseOrderbookService {
         const isUpdate = currentPrice === price;
         if (isUpdate) {
           // console.log('Update', price);
-          this.asks[index] = [price, volume];
+          currentLevels[index] = [price, volume];
           break;
         }
 
         // new level
         // append
-        const isLastIndex = index === this.asks.length - 1;
+        const isLastIndex = index === currentLevels.length - 1;
         if (isLastIndex) {
           // console.log('Append', price);
-          this.asks.push([price, volume]);
+          currentLevels.push([price, volume]);
           break;
         }
 
         // insert
-        if (price < Number(this.asks[index + 1][0])) {
+        if (price < Number(currentLevels[index + 1][0])) {
           // console.log('Insert', price);
-          this.asks[index] = [price, volume];
+          currentLevels[index] = [price, volume];
           break;
         }
       }
     }
-  }
 
-  private updateBids(levels: KrakenLevel[]) {
-    // console.log('rows: ' + levels.length);
-    if (this.bids.length === 0) {
-      this.bids = levels.map((level) => {
-        return [Number(level[0]), Number(level[1])];
-      });
-      return null;
-    }
-
-    for (const level of levels) {
-      const price = Number(level[0]);
-      const volume = Number(level[1]);
-      const isDelete = volume === 0;
-
-      for (let index = 0; index < this.bids.length; index++) {
-        const currentPrice = Number(this.bids[index][0]);
-
-        // delete level
-        if (isDelete && currentPrice === price) {
-          // console.log('Delete', currentPrice);
-          this.bids.splice(index, 1);
-          break;
-        }
-
-        // update level
-        const isUpdate = currentPrice === price;
-        if (isUpdate) {
-          // console.log('Update', price);
-          this.bids[index] = [price, volume];
-          break;
-        }
-
-        // new level
-        // append
-        const isLastIndex = index === this.bids.length - 1;
-        if (isLastIndex) {
-          // console.log('Append', price);
-          this.bids.push([price, volume]);
-          break;
-        }
-
-        // insert
-        if (price < Number(this.bids[index + 1][0])) {
-          // console.log('Insert', price);
-          this.bids[index] = [price, volume];
-          break;
-        }
-      }
-    }
+    return currentLevels;
   }
 }

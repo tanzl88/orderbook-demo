@@ -27,4 +27,13 @@ export class OrderbookController {
       sources,
     };
   }
+
+  @Get('levels')
+  getLevels() {
+    return {
+      kraken: this.krakenOrderbook.getLevels(),
+      huobi: this.huobiOrderbookService.getLevels(),
+      binance: this.binanceOrderbookService.getLevels(),
+    };
+  }
 }

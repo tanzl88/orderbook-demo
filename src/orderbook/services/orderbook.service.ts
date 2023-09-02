@@ -14,7 +14,6 @@ export class BaseOrderbookService {
     public wssUrl: string,
     public subscriptionMessage: Object,
   ) {
-    console.log(this);
     this.initWebSocket();
     this.logger = new Logger(`${this.name}OrderbookService`);
   }
@@ -25,6 +24,13 @@ export class BaseOrderbookService {
     }
 
     return null;
+  }
+
+  getLevels(): { a: OrderbookLevel[]; b: OrderbookLevel[] } {
+    return {
+      a: this.asks,
+      b: this.bids,
+    };
   }
 
   private initWebSocket() {
@@ -44,6 +50,7 @@ export class BaseOrderbookService {
     this.wsClient.on('close', () => {
       this.logger.log(`Disconnected from ${this.name} WebSocket`);
       // Handle WebSocket closure or reconnect logic
+      this.initWebSocket();
     });
 
     this.wsClient.on('error', (error) => {
@@ -56,4 +63,36 @@ export class BaseOrderbookService {
   }
 
   protected async handleData(data: WebSocket.Data) {}
+
+  protected setAsks(asks: OrderbookLevel[]) {
+    this.asks = asks;
+    this.verifyLevels(asks, true);
+  }
+  protected setBids(bids: OrderbookLevel[]) {
+    this.bids = bids;
+    this.verifyLevels(bids, false);
+  }
+
+  private verifyLevels(levels: OrderbookLevel[], isIncreasing: boolean) {
+    let levelsError = false;
+    for (let index = 0; index < levels.length - 2; index++) {
+      if (isIncreasing && levels[index][0] >= levels[index + 1][0]) {
+        console.log('increasing', levels[index], levels[index + 1]);
+        levelsError = true;
+        break;
+      } else if (!isIncreasing && levels[index][0] <= levels[index + 1][0]) {
+        console.log('decreasing', levels[index], levels[index + 1]);
+        levelsError = true;
+        break;
+      }
+    }
+
+    if (levelsError) {
+      console.log(isIncreasing);
+      this.logger.warn(`Levels error: ${this.name}`);
+      this.logger.warn(levels);
+    } else {
+      // this.logger.log(`Ok: ${this.name}`);
+    }
+  }
 }

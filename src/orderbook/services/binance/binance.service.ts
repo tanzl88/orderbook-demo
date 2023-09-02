@@ -3,6 +3,7 @@ import { WebSocketGateway } from '@nestjs/websockets';
 import * as WebSocket from 'ws';
 import { BinanceOrderbookResponse } from './binance.types';
 import { BaseOrderbookService } from '../orderbook.service';
+import { OrderbookLevel } from '../orderbook.types';
 
 @Injectable()
 @WebSocketGateway()
@@ -23,15 +24,17 @@ export class BinanceOrderbookService extends BaseOrderbookService {
 
     if (parsedData?.a) {
       // console.log(parsedData.tick.asks);
-      this.asks = parsedData.a.map((level) => {
+      const asks = parsedData.a.map((level) => {
         return [Number(level[0]), Number(level[1])];
-      });
+      }) as OrderbookLevel[];
+      this.setAsks(asks);
     }
     if (parsedData?.b) {
       // console.log(parsedData.tick.bids);
-      this.bids = parsedData.b.map((level) => {
+      const bids = parsedData.b.map((level) => {
         return [Number(level[0]), Number(level[1])];
-      });
+      }) as OrderbookLevel[];
+      this.setBids(bids);
     }
   }
 }
