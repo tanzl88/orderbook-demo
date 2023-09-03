@@ -106,9 +106,11 @@ describe('KrakenOrderbookService', () => {
     expect(result).toEqual(expected);
   });
 
-  afterAll((done) => {
-    // Closing the DB connection allows Jest to exit successfully.
-    service['wsClient'].close();
-    done();
+  afterEach((done) => {
+    setTimeout(() => {
+      // Closing the DB connection allows Jest to exit successfully.
+      service['closeWebsocket']();
+      done();
+    }, 1000);
   });
 });

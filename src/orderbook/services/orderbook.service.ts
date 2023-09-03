@@ -8,6 +8,7 @@ export class BaseOrderbookService {
   protected asks: OrderbookLevel[] = [];
   protected bids: OrderbookLevel[] = [];
   private logger: Logger;
+  private shouldReconnect = true;
 
   constructor(
     public name: string,
@@ -49,13 +50,20 @@ export class BaseOrderbookService {
 
     this.wsClient.on('close', () => {
       this.logger.log(`Disconnected from ${this.name} WebSocket`);
-      // Handle WebSocket closure or reconnect logic
-      this.initWebSocket();
+
+      if (this.shouldReconnect) {
+        this.initWebSocket();
+      }
     });
 
     this.wsClient.on('error', (error) => {
       this.logger.error(`${this.name} WebSocket error: ${error}`);
     });
+  }
+
+  private closeWebsocket() {
+    this.shouldReconnect = false;
+    this.wsClient.close();
   }
 
   private subscribeToOrderBook() {

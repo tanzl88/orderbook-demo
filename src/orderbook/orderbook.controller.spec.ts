@@ -128,12 +128,4 @@ describe('OrderbookController', () => {
       binance: binanceLevels,
     });
   });
-
-  afterAll((done) => {
-    // Closing the DB connection allows Jest to exit successfully.
-    orderbookController.krakenOrderbookService['wsClient'].close();
-    orderbookController.huobiOrderbookService['wsClient'].close();
-    orderbookController.binanceOrderbookService['wsClient'].close();
-    done();
-  });
 });

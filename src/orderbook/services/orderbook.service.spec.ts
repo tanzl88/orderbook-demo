@@ -92,9 +92,9 @@ describe('BaseOrderbookService', () => {
     expect(service['isError'](invalidLevels, false)).toEqual(true);
   });
 
-  afterAll((done) => {
+  afterEach((done) => {
     // Closing the DB connection allows Jest to exit successfully.
-    service['wsClient'].close();
+    service['closeWebsocket']();
     done();
   });
 });
