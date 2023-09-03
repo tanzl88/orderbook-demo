@@ -1,12 +1,15 @@
 import { Logger } from '@nestjs/common';
 import * as WebSocket from 'ws';
 import { Orderbook, OrderbookLevel } from './orderbook.types';
+import { Cron } from '@nestjs/schedule';
 
 export class BaseOrderbookService {
   private wsClient: WebSocket;
 
   protected asks: OrderbookLevel[] = [];
   protected bids: OrderbookLevel[] = [];
+  private lastUpdatedAt: number;
+  protected orderbookStaleTime = 1000 * 10;
   private logger: Logger;
   private shouldReconnect = true;
 
@@ -34,6 +37,18 @@ export class BaseOrderbookService {
     };
   }
 
+  @Cron('*/5 * * * * *')
+  cronCheckOrderbookStale() {
+    const timeSinceLastUpdate = Date.now() - this.lastUpdatedAt;
+    const orderbookIsStale = timeSinceLastUpdate > this.orderbookStaleTime;
+    if (orderbookIsStale) {
+      this.logger.warn(`Orderbook is stale: ${this.name}`);
+      this.resetOrderbook();
+      this.closeWebsocket();
+      this.initWebSocket();
+    }
+  }
+
   private initWebSocket() {
     this.wsClient = new WebSocket(this.wssUrl);
 
@@ -51,9 +66,9 @@ export class BaseOrderbookService {
     this.wsClient.on('close', () => {
       this.logger.log(`Disconnected from ${this.name} WebSocket`);
 
-      if (this.shouldReconnect) {
-        this.initWebSocket();
-      }
+      // if (this.shouldReconnect) {
+      //   this.initWebSocket();
+      // }
     });
 
     this.wsClient.on('error', (error) => {
@@ -74,11 +89,17 @@ export class BaseOrderbookService {
 
   public setAsks(asks: OrderbookLevel[]) {
     this.asks = asks;
+    this.lastUpdatedAt = Date.now();
     this.verifyLevels(asks, true);
   }
   public setBids(bids: OrderbookLevel[]) {
     this.bids = bids;
+    this.lastUpdatedAt = Date.now();
     this.verifyLevels(bids, false);
+  }
+  public resetOrderbook() {
+    this.setAsks([]);
+    this.setBids([]);
   }
 
   private verifyLevels(levels: OrderbookLevel[], isIncreasing: boolean) {
