@@ -66,9 +66,9 @@ export class BaseOrderbookService {
     this.wsClient.on('close', () => {
       this.logger.log(`Disconnected from ${this.name} WebSocket`);
 
-      // if (this.shouldReconnect) {
-      //   this.initWebSocket();
-      // }
+      if (this.shouldReconnect) {
+        this.initWebSocket();
+      }
     });
 
     this.wsClient.on('error', (error) => {
