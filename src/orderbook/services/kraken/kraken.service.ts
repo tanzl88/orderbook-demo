@@ -46,6 +46,7 @@ export class KrakenOrderbookService extends BaseOrderbookService {
     _currentLevels: OrderbookLevel[],
     levels: KrakenLevel[],
   ): OrderbookLevel[] {
+    // https://support.kraken.com/hc/en-us/articles/360027821131-WebSocket-API-v1-How-to-maintain-a-valid-order-book
     let currentLevels = structuredClone(_currentLevels);
     if (currentLevels.length === 0) {
       return levels.map((level) => {
@@ -57,7 +58,6 @@ export class KrakenOrderbookService extends BaseOrderbookService {
       const price = Number(level[0]);
       const volume = Number(level[1]);
       const isDelete = volume === 0;
-      let inserted = false;
 
       for (let index = 0; index < currentLevels.length; index++) {
         const currentPrice = Number(currentLevels[index][0]);

@@ -18,6 +18,8 @@ export class HuobiOrderbookService extends BaseOrderbookService {
   }
 
   protected async handleData(data: WebSocket.Data) {
+    //huobiapi.github.io/docs/spot/v1/en/#faq-3
+    // All return data of websocket Market APIs are compressed with GZIP so they need to be unzipped.
     const unzipped = await this.gzipService.unzip(data as string);
     const parsedData: HuobiOrderbookResponse = JSON.parse(unzipped);
 
