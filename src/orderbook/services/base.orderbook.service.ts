@@ -105,7 +105,6 @@ export class BaseOrderbookService {
   private verifyLevels(levels: OrderbookLevel[], isIncreasing: boolean) {
     const levelsError = this.isError(levels, isIncreasing);
     if (levelsError) {
-      console.log(isIncreasing);
       this.logger.warn(`Levels error: ${this.name}`);
       this.logger.warn(levels);
     } else {
