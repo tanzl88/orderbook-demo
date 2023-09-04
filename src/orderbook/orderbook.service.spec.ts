@@ -1,17 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { OrderbookController } from './orderbook.controller';
+import { OrderbookService } from './orderbook.service';
 import { KrakenOrderbookService } from './services/kraken/kraken.service';
 import { HuobiOrderbookService } from './services/huobi/huobi.service';
 import { BinanceOrderbookService } from './services/binance/binance.service';
 import { GzipService } from '../utils/gzip.service';
 
 describe('OrderbookController', () => {
-  let orderbookController: OrderbookController;
+  let orderbookService: OrderbookService;
+  let krakenOrderbookService: KrakenOrderbookService;
+  let huobiOrderbookService: HuobiOrderbookService;
+  let binanceOrderbookService: BinanceOrderbookService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [OrderbookController],
       providers: [
+        OrderbookService,
         KrakenOrderbookService,
         HuobiOrderbookService,
         BinanceOrderbookService,
@@ -19,7 +22,16 @@ describe('OrderbookController', () => {
       ],
     }).compile();
 
-    orderbookController = module.get<OrderbookController>(OrderbookController);
+    orderbookService = module.get<OrderbookService>(OrderbookService);
+    krakenOrderbookService = module.get<KrakenOrderbookService>(
+      KrakenOrderbookService,
+    );
+    huobiOrderbookService = module.get<HuobiOrderbookService>(
+      HuobiOrderbookService,
+    );
+    binanceOrderbookService = module.get<BinanceOrderbookService>(
+      BinanceOrderbookService,
+    );
   });
 
   it('should calculate the average midprice correctly', () => {
@@ -28,16 +40,16 @@ describe('OrderbookController', () => {
     const huobiMidPrice = 120;
     const binanceMidPrice = 110;
     jest
-      .spyOn(orderbookController.krakenOrderbookService, 'getMidPrice')
+      .spyOn(krakenOrderbookService, 'getMidPrice')
       .mockReturnValue(krakenMidPrice);
     jest
-      .spyOn(orderbookController.huobiOrderbookService, 'getMidPrice')
+      .spyOn(huobiOrderbookService, 'getMidPrice')
       .mockReturnValue(huobiMidPrice);
     jest
-      .spyOn(orderbookController.binanceOrderbookService, 'getMidPrice')
+      .spyOn(binanceOrderbookService, 'getMidPrice')
       .mockReturnValue(binanceMidPrice);
 
-    const result = orderbookController.getMidPrice();
+    const result = orderbookService.getMidPrice();
 
     expect(result).toEqual({
       average: (krakenMidPrice + huobiMidPrice + binanceMidPrice) / 3,
@@ -56,16 +68,16 @@ describe('OrderbookController', () => {
     const binanceMidPrice = 110;
 
     jest
-      .spyOn(orderbookController.krakenOrderbookService, 'getMidPrice')
+      .spyOn(krakenOrderbookService, 'getMidPrice')
       .mockReturnValue(krakenMidPrice);
     jest
-      .spyOn(orderbookController.huobiOrderbookService, 'getMidPrice')
+      .spyOn(huobiOrderbookService, 'getMidPrice')
       .mockReturnValue(huobiMidPrice);
     jest
-      .spyOn(orderbookController.binanceOrderbookService, 'getMidPrice')
+      .spyOn(binanceOrderbookService, 'getMidPrice')
       .mockReturnValue(binanceMidPrice);
 
-    const result = orderbookController.getMidPrice();
+    const result = orderbookService.getMidPrice();
 
     expect(result).toEqual({
       average: (krakenMidPrice + binanceMidPrice) / 2,
@@ -111,16 +123,16 @@ describe('OrderbookController', () => {
     };
 
     jest
-      .spyOn(orderbookController.krakenOrderbookService, 'getOrderbook')
+      .spyOn(krakenOrderbookService, 'getOrderbook')
       .mockReturnValue(krakenLevels);
     jest
-      .spyOn(orderbookController.huobiOrderbookService, 'getOrderbook')
+      .spyOn(huobiOrderbookService, 'getOrderbook')
       .mockReturnValue(huobiLevels);
     jest
-      .spyOn(orderbookController.binanceOrderbookService, 'getOrderbook')
+      .spyOn(binanceOrderbookService, 'getOrderbook')
       .mockReturnValue(binanceLevels);
 
-    const result = orderbookController.getOrderbook();
+    const result = orderbookService.getOrderbook();
 
     expect(result).toEqual({
       kraken: krakenLevels,
