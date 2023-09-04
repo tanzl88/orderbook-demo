@@ -1,4 +1,4 @@
-import { BaseOrderbookService } from './orderbook.service';
+import { BaseOrderbookService } from './base.orderbook.service';
 
 // Mock WebSocket
 const mockWebSocket = {

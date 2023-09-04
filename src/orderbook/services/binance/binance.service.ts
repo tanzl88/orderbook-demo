@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { WebSocketGateway } from '@nestjs/websockets';
 import * as WebSocket from 'ws';
 import { BinanceOrderbookResponse } from './binance.types';
-import { BaseOrderbookService } from '../orderbook.service';
+import { BaseOrderbookService } from '../base.orderbook.service';
 import { OrderbookLevel } from '../orderbook.types';
 
 @Injectable()

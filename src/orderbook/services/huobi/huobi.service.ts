@@ -2,8 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { WebSocketGateway } from '@nestjs/websockets';
 import * as WebSocket from 'ws';
 import { HuobiOrderbookResponse } from './huobi.types';
-import * as process from 'process';
-import { BaseOrderbookService } from '../orderbook.service';
+import { BaseOrderbookService } from '../base.orderbook.service';
 import { GzipService } from '../../../utils/gzip.service';
 
 @Injectable()
